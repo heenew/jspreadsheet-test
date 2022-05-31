@@ -1,10 +1,12 @@
+<!-- npx http-server -->
 <!DOCTYPE html>
 <html>
     <head>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.10/vue.min.js"></script>
-
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>      
         <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
         <script src="https://jsuites.net/v4/jsuites.js"></script>
+        <!-- <script src="./dataex.json" type="text/javascript"></script> -->
         <link
           rel="stylesheet"
           href="https://bossanova.uk/jspreadsheet/v4/jexcel.css"
@@ -18,10 +20,10 @@
     </head>
 
 <body>
-    <div  id="spreadsheet" >
+    <div id="spreadsheet" >
         <div>
             <h2>ㅇㅇㅇ그룹</h2> 
-            <br>
+
             <table  style="display:inline;">
                 <tbody>
                     <tr style="background-color:rgba(0, 0, 0, 0.1);">
@@ -61,7 +63,6 @@
             
         </div>
         <div>
-          <options v-bind:issue-a="issue"></option>
         </div>
     </div>
     
@@ -69,121 +70,148 @@
     <input type="button" value="Add new row" onclick="vm.insertRow()" />
   
     <script>
-      var options = {
-        props: ["issueA"],
-        template:'<p>issueA</p>',
-        data: [[]],
-        columns: [
-          {
-            type: "text",
-            title: "프로젝트명",
-            width: 90,
-          },
-          {
-            type: "text",
-            title: "프로젝트 코드",
-            width: 120,
-          },
-          {
-            type: "text",
-            title: "고객사",
-            width: 90,
-          },
-          {
-            type: "dropdown",
-            title: "긴급도",
-            width: 50,
-            source:[
-                "상","중","하"
-            ]
-          },
-          {
-            type: "text",
-            title: "장애범위",
-            width: 80,
-          },
-          {
-            type: "dropdown",
-            title: "장애유형(A)",
-            width: 80,
-            source: [              
-                "Legacy",
-              "EN가상화",
-              "Bmw",
-              "SDN",
-              "서버",
-              "스토리지",
-              "Soft Defined",
-              "가상화",
-              "PaaS",
-              "솔루션",
-              "SI",],
-          },
-          {
-            type: "dropdown",
-            title: "장애유형(B)",
-            width: 80,
-          },
-          {
-            type: "text",
-            title: "장애내용",
-            width: 80,
-          },
-          {
-            type: "text",
-            title: "진행단계",
-            width: 80,
-          },
-          {
-            type: "calendar",
-            title: "발생시점",
-            width: 80,
-          },
-          {
-            type: "calendar",
-            title: "종료시점",
-            width: 80,
-          },
-          {
-            type: "text",
-            title: "담당자",
-            width: 80,
-          },
-          {
-            type: "text",
-            title: "비고",
-            width: 80,
-          },
-          {
-            type: "numeric",
-            title: "경과일",
-            width: 80,
-          },
-        ], 
-      };
+      // let mydata = JSON.parse(JSON.stringify(data));
+      // console.log(mydata);
+
   
       var vm = new Vue({
         el: "#spreadsheet",
         data() {
           return {
-            issue: [
-              "Legacy",
-              "EN가상화",
-              "SDN",
-              "서버",
-              "스토리지",
-              "Soft Defined",
-              "가상화",
-              "PaaS",
-              "솔루션",
-              "SI",
-            ],
+            datas:[],
+            issuing: null,
+            totalUrgency: null,
           };
         },
-        mounted: function () {
-          let spreadsheet = jspreadsheet(this.$el, options);
-          Object.assign(this, spreadsheet);
+
+        computed:{
+          options(){
+            return{
+              data: this.datas,
+              selectIssueTypeA:[
+
+              ],
+              columns: [
+                {
+                  type: "text",
+                  title: '프로젝트 명',
+                  width: 90,
+                },
+                {
+                  type: "text",
+                  title: "프로젝트 코드",
+                  width: 120,
+                },
+                {
+                  type: "text",
+                  title: "고객사",
+                  width: 90,
+                },
+                {
+                  type: "dropdown",
+                  title: "긴급도",
+                  width: 50,
+                  source:[
+                      "상","중","하"
+                  ]
+                },
+                {
+                  type: "text",
+                  title: "장애범위",
+                  width: 80,
+                },
+                {
+                  type: "dropdown",
+                  title: "장애유형(A)",
+                  width: 80,
+                  source: [              
+                    "Legacy","EN가상화","SDN","서버","스토리지","Soft Defined",
+                    "가상화","PaaS","솔루션","SI",],
+                },
+                {
+                  type: "text",
+                  title: "장애유형(B)",
+                  width: 80,
+                },
+                {
+                  type: "text",
+                  title: "장애내용",
+                  width: 80,
+                },
+                {
+                  type: "text",
+                  title: "진행단계",
+                  width: 80,
+                },
+                {
+                  type: "text",
+                  title: "발생시점",
+                  width: 80,
+                },
+                {
+                  type: "text",
+                  title: "종료시점",
+                  width: 80,
+                },
+                {
+                  type: "text",
+                  title: "담당자",
+                  width: 80,
+                },
+                {
+                  type: "text",
+                  title: "비고",
+                  width: 80,
+                },
+                {
+                  type: "text",
+                  title: "경과일",
+                  width: 80,
+                },
+              ], 
+              tableOverflow: true, // スクロールの有効化
+              csvFileName: "HeadSetsData"
+            }
+          }
         },
+        methods: {
+          totalIssue(){
+            let tot=null;
+            for(let i=0; i<this.datas.length; i++){
+              if(this.datas[i].urgency==="상"){
+                tot = tot+1;
+              }
+            }
+            this.totalUrgency = tot;
+            return this.totalUrgency;
+          },
+          pushExcel(){
+            let spreadsheet = jspreadsheet(this.$el, this.options);
+            Object.assign(this, spreadsheet);  
+          },
+          async fetchData(method, url, params) {
+            const res = await axios[method](url, { params });
+            return res.data;
+          },
+          
+          async fetchCases() {
+            const url = "./dataex.json";
+            const summary = await this.fetchData("get", url);
+             
+            this.datas = summary;
+            console.log(this.datas);
+
+            this.pushExcel();
+            this.totalIssue();
+            console.log(this.totalUrgency);
+
+          },
+        },
+        mounted: function () {
+          this.fetchCases();
+
+        },
+
       });
     </script>
 

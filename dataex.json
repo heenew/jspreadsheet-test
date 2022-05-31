@@ -1,0 +1,34 @@
+[
+  {
+    "pTitle": "ㅇㅇㅇ시스템 구축",
+    "pCode": "PD2022-000",
+    "customer": "ㅇㅇ병원",
+    "urgency": "상",
+    "issueRange": "장비 운용 불가",
+    "issueTypeA": "EN가상화",
+    "issueTypeB": "EN_Wifi",
+    "issueContent": "장애내용1",
+    "state": "진행중",
+    "startDate": "2022-05-09",
+    "endDate": "2022-05-13",
+    "pic": "홍길동",
+    "note": "비고",
+    "elapseDate": "5"
+  },
+  {
+    "pTitle": "ㅁㅁㅁ시스템 구축",
+    "pCode": "PD2022-001",
+    "customer": "ㅇㅇ대학교",
+    "urgency": "중",
+    "issueRange": "장애범위1",
+    "issueTypeA": "SI",
+    "issueTypeB": "Web서버",
+    "issueContent": "장애내용2",
+    "state": "진행중",
+    "startDate": "2022-05-10",
+    "endDate": "2022-05-11",
+    "pic": "김철수",
+    "note": "비고",
+    "elapseDate": "2"
+  }
+]
