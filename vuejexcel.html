@@ -81,6 +81,23 @@
             datas:[],
             issuing: null,
             totalUrgency: null,
+            selectIssueTypeA:{
+              Legacy: ["Router",	"Switch",	"Firewall",	"IPS",	"VPN",	"Wifi",	"IPT",	"VDI"],
+              EN가상화: [],
+              SDN: [],
+              서버: [],
+              스토리지: [],
+              Soft: [],
+              Defined: [],
+              가상화: [],
+              PaaS: [],
+              솔루션: [],
+              SI: []
+            },
+            selectState: ["진행중", "완료"],
+            selectUrgency: ["상", "중"],
+            selectIssueRange: ["서비스 중단", "장비 운용 불가", "기타"],
+
           };
         },
 
@@ -88,9 +105,7 @@
           options(){
             return{
               data: this.datas,
-              selectIssueTypeA:[
 
-              ],
               columns: [
                 {
                   type: "text",
@@ -111,27 +126,25 @@
                   type: "dropdown",
                   title: "긴급도",
                   width: 50,
-                  source:[
-                      "상","중","하"
-                  ]
+                  source: this.selectUrgency
                 },
                 {
-                  type: "text",
+                  type: "dropdown",
                   title: "장애범위",
                   width: 80,
+                  source: this.selectIssueRange
                 },
                 {
                   type: "dropdown",
                   title: "장애유형(A)",
                   width: 80,
-                  source: [              
-                    "Legacy","EN가상화","SDN","서버","스토리지","Soft Defined",
-                    "가상화","PaaS","솔루션","SI",],
+                  source: Object.keys(this.selectIssueTypeA),
                 },
                 {
-                  type: "text",
+                  type: "dropdown",
                   title: "장애유형(B)",
                   width: 80,
+                  source: []
                 },
                 {
                   type: "text",
@@ -139,19 +152,22 @@
                   width: 80,
                 },
                 {
-                  type: "text",
+                  type: "dropdown",
                   title: "진행단계",
                   width: 80,
+                  source: this.selectState
                 },
                 {
-                  type: "text",
+                  type: "calendar",
                   title: "발생시점",
                   width: 80,
+                  options: { format:'YYYY/MM/DD' } 
                 },
                 {
-                  type: "text",
+                  type: "calendar",
                   title: "종료시점",
                   width: 80,
+                  options: { format:'YYYY/MM/DD' } 
                 },
                 {
                   type: "text",
@@ -169,12 +185,15 @@
                   width: 80,
                 },
               ], 
-              tableOverflow: true, // スクロールの有効化
+              tableOverflow: true, 
               csvFileName: "HeadSetsData"
             }
           }
         },
         methods: {
+          // selectIssueTypeB(){
+          //   Object.keys(this.selectIssueTypeA);
+          // },
           totalIssue(){
             let tot=null;
             for(let i=0; i<this.datas.length; i++){
@@ -204,6 +223,10 @@
             this.pushExcel();
             this.totalIssue();
             console.log(this.totalUrgency);
+            Object.keys(this.selectIssueTypeA).forEach(key=>{
+              console.log(key);
+              console.log(this.selectIssueTypeA[key])
+            })
 
           },
         },
