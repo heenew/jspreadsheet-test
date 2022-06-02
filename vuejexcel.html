@@ -6,6 +6,7 @@
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>      
         <script src="https://bossanova.uk/jspreadsheet/v4/jexcel.js"></script>
         <script src="https://jsuites.net/v4/jsuites.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.7/dayjs.min.js"></script>
         <!-- <script src="./dataex.json" type="text/javascript"></script> -->
         <link
           rel="stylesheet"
@@ -46,13 +47,13 @@
                 <tbody>
                     <tr style="background-color:rgba(0, 0, 0, 0.1);">
                         <th rowspan="2">장애 현황</th> 
-                        <th>진행중</th> 
-                        <th>완료</th> 
-                        <th>합계</th>
+                        <th>상</th> 
+                        <th>중</th> 
+                        <th>장기 미완료</th>
                     </tr>
                     <tr>
-                        <td>0</td>
-                        <td>0</td>
+                        <td>{{totalIssue.hightot}}</td>
+                        <td>{{totalIssue.middletot}}</td>
                         <td>0</td>
 
                     </tr>
@@ -64,14 +65,27 @@
         </div>
         <div>
         </div>
+        <p><button id='download' @click="down">Export my spreadsheet as CSV</button></p>
     </div>
     
-  
+    
     <input type="button" value="Add new row" onclick="vm.insertRow()" />
+    
   
     <script>
       // let mydata = JSON.parse(JSON.stringify(data));
       // console.log(mydata);
+
+    //   document.getElementById('download').onclick = function () {
+    //     spreadsheet.download();
+    //     }
+
+      var download = function() {
+            // Get selected tab
+            var worksheet = document.getElementById('spreadsheet').children[0].querySelector('.selected').getAttribute('data-spreadsheet');
+            // Download
+            document.getElementById('spreadsheet').jexcel[worksheet].download();
+        }
 
   
       var vm = new Vue({
@@ -79,20 +93,20 @@
         data() {
           return {
             datas:[],
+            diffDate:0,
             issuing: null,
             totalUrgency: null,
             selectIssueTypeA:{
-              Legacy: ["Router",	"Switch",	"Firewall",	"IPS",	"VPN",	"Wifi",	"IPT",	"VDI"],
-              EN가상화: [],
-              SDN: [],
-              서버: [],
-              스토리지: [],
-              Soft: [],
-              Defined: [],
-              가상화: [],
-              PaaS: [],
-              솔루션: [],
-              SI: []
+              Legacy: ["Router", "Switch", "Firewall", "IPS", "VPN", "Wifi", "IPT", "VDI"],
+              EN가상화: ["SDA", "EN_Wifi", "ISE", "SDWAN"],
+              SDN: ["ACI", "NSX", "DCNM"],
+              서버: ["Cisco", "Dell", "HP", "기타"],
+              스토리지: ["Dell/EMC", "기타", "SAN", "스위치"],
+              Soft_Defined_Storage:["HyperFlex", "Intersight", "VxRail/vSAN", "Powerflex", "기타"],
+              가상화: ["vSphere", "Openstack/KVM"],
+              PaaS: ["Tanzu", "Openshift", "K8s", "RedhatOS"],
+              솔루션: ["Nexus Dashboard", "vRealizeSuite", "CWOM", "RTLS"],
+              SI: ["web서버", "was서버", "미들웨어/연계서버", "DB", "java 등", "Language"]
             },
             selectState: ["진행중", "완료"],
             selectUrgency: ["상", "중"],
@@ -102,108 +116,204 @@
         },
 
         computed:{
+ 
+            totalIssue(){
+            let hightot=0;
+            let middletot=0;
+            for(let i=0; i<this.datas.length; i++){
+              if(this.datas[i].urgency ==="상"){
+                hightot = hightot + 1; 
+              }
+              else if(this.datas[i].urgency ==="중"){
+                middletot = middletot + 1;
+              }
+            }
+              return {
+                  hightot, middletot
+              }
+              
+            },
           options(){
             return{
-              data: this.datas,
+                data: this.datas,
+                search:true,
+                pagination:10,
+                filters: true,
+                allowComments:true,
+             
+                columns: [
+                    {
+                    type: "text",
+                    title: '프로젝트 명',
+                    width: 120,
+                    },
+                    {
+                    type: "text",
+                    title: "프로젝트 코드",
+                    width: 100,
+                    },
+                    {
+                    type: "text", 
+                    title: "고객사",
+                    width: 90,
+                    },
+                    {
+                    type: "dropdown",
+                    title: "긴급도",
+                    width: 50,
+                    source: this.selectUrgency
+                    },
+                    {
+                    type: "dropdown",
+                    title: "장애범위",
+                    width: 90,
+                    source: this.selectIssueRange
+                    },
+                    {
+                    type: "dropdown",
+                    title: "장애유형(A)",
+                    width: 90,
+                    source: Object.keys(this.selectIssueTypeA),
+                    // source: [{'id':'1', 'name':Object.keys(this.selectIssueTypeA)[0]}, {'id':'2', 'name':Object.keys(this.selectIssueTypeA)[1]},
+                    // {'id':'3', 'name':Object.keys(this.selectIssueTypeA)[2]},{'id':'4', 'name':Object.keys(this.selectIssueTypeA)[3]},
+                    // {'id':'5', 'name':Object.keys(this.selectIssueTypeA)[4]},{'id':'6', 'name':Object.keys(this.selectIssueTypeA)[5]},
+                    // {'id':'7', 'name':Object.keys(this.selectIssueTypeA)[6]},{'id':'8', 'name':Object.keys(this.selectIssueTypeA)[7]},
+                    // {'id':'9', 'name':Object.keys(this.selectIssueTypeA)[8]},{'id':'10', 'name':Object.keys(this.selectIssueTypeA)[9]},
+                    // ]
+                    },
+                    {
+                    type: "dropdown",
+                    title: "장애유형(B)",
+                    width: 90,
+                    source: [
+                        "Router", "Switch", "Firewall", "IPS", "VPN", "Wifi", "IPT", "VDI",
+                        "SDA", "EN_Wifi", "ISE", "SDWAN",
+                        "ACI", "NSX", "DCNM",
+                        "Cisco", "Dell", "HP", "기타",
+                        "Dell/EMC", "기타", "SAN", "스위치",
+                        "HyperFlex", "Intersight", "VxRail/vSAN", "Powerflex", "기타",
+                        "vSphere", "Openstack/KVM",
+                        "Tanzu", "Openshift", "K8s", "RedhatOS",
+                        "Nexus Dashboard", "vRealizeSuite", "CWOM", "RTLS",
+                        "web서버", "was서버", "미들웨어/연계서버", "DB", "java 등", "Language",],
+                    filter: this.selectIssueTypeB
 
-              columns: [
-                {
-                  type: "text",
-                  title: '프로젝트 명',
-                  width: 90,
-                },
-                {
-                  type: "text",
-                  title: "프로젝트 코드",
-                  width: 120,
-                },
-                {
-                  type: "text",
-                  title: "고객사",
-                  width: 90,
-                },
-                {
-                  type: "dropdown",
-                  title: "긴급도",
-                  width: 50,
-                  source: this.selectUrgency
-                },
-                {
-                  type: "dropdown",
-                  title: "장애범위",
-                  width: 80,
-                  source: this.selectIssueRange
-                },
-                {
-                  type: "dropdown",
-                  title: "장애유형(A)",
-                  width: 80,
-                  source: Object.keys(this.selectIssueTypeA),
-                },
-                {
-                  type: "dropdown",
-                  title: "장애유형(B)",
-                  width: 80,
-                  source: []
-                },
-                {
-                  type: "text",
-                  title: "장애내용",
-                  width: 80,
-                },
-                {
-                  type: "dropdown",
-                  title: "진행단계",
-                  width: 80,
-                  source: this.selectState
-                },
-                {
-                  type: "calendar",
-                  title: "발생시점",
-                  width: 80,
-                  options: { format:'YYYY/MM/DD' } 
-                },
-                {
-                  type: "calendar",
-                  title: "종료시점",
-                  width: 80,
-                  options: { format:'YYYY/MM/DD' } 
-                },
-                {
-                  type: "text",
-                  title: "담당자",
-                  width: 80,
-                },
-                {
-                  type: "text",
-                  title: "비고",
-                  width: 80,
-                },
-                {
-                  type: "text",
-                  title: "경과일",
-                  width: 80,
-                },
-              ], 
-              tableOverflow: true, 
-              csvFileName: "HeadSetsData"
+                    },
+                    {
+                    type: "text",
+                    title: "장애내용",
+                    width: 120,
+                    },
+                    {
+                    type: "dropdown",
+                    title: "진행단계",
+                    width: 80,
+                    source: this.selectState
+                    },
+                    {
+                    type: "calendar",
+                    title: "발생시점",
+                    width: 100,
+                    options: { format:'YYYY/MM/DD' } 
+                    },
+                    {
+                    type: "calendar",
+                    title: "종료시점",
+                    width: 100,
+                    options: { format:'YYYY/MM/DD' } 
+                    },
+                    {
+                    type: "text",
+                    title: "담당자",
+                    width: 80,
+                    },
+                    {
+                    type: "text",
+                    title: "비고",
+                    width: 80,
+                    },
+                    {
+                    type: "text",
+                    title: "경과일",
+                    width: 60,
+                    },
+                ], 
+                tableOverflow: true, 
+                csvFileName: "HeadSetsData",
             }
           }
         },
         methods: {
-          // selectIssueTypeB(){
-          //   Object.keys(this.selectIssueTypeA);
-          // },
-          totalIssue(){
-            let tot=null;
-            for(let i=0; i<this.datas.length; i++){
-              if(this.datas[i].urgency==="상"){
-                tot = tot+1;
+            down(){
+                spreadsheet.download();
+            },
+            getDateDiff(){
+                for(let i=0; i<this.datas.length; i++ ){
+                    let date1 = dayjs(this.datas[i].endDate);
+                    let date2 = dayjs(this.datas[i].startDate);
+                    
+                    let diffDate = date1.diff(date2, "day"); 
+                    console.log(diffDate);
+                    this.datas[i].elapseDate = diffDate
+                }
+
+            },
+
+          selectIssueTypeB(){
+
+            for(let i=0; i<4; i++){
+              switch(this.datas[i].issueTypeA){
+
+                case 'Legacy':
+                  return this.selectIssueTypeA.Legacy;
+                  break;
+
+                case 'EN가상화':
+                  return this.selectIssueTypeA.EN가상화;
+                  break;
+
+                case 'SDN':
+                  return this.selectIssueTypeA.SDN;
+                  break;
+
+                case '서버':
+                  return this.selectIssueTypeA.서버;
+                  break;
+
+                case '스토리지':
+                  return this.selectIssueTypeA.스토리지;
+                  break;
+
+                case 'Soft_Defined_Storage':
+                  return this.selectIssueTypeA.Soft_Defined_Storage;
+                  break;
+                
+                case '가상화':
+                  return this.selectIssueTypeA.가상화;
+                  break;
+                  
+                case 'PaaS':
+                  return this.selectIssueTypeA.PaaS;
+                  break;
+
+                case '솔루션':
+                  return this.selectIssueTypeA.솔루션;
+                  break;
+
+                case 'SI':
+                  return this.selectIssueTypeA.SI;
+                  break;
+
+                default:
+                  return null;
               }
-            }
-            this.totalUrgency = tot;
-            return this.totalUrgency;
-          },
+           }
+            
+            
+
+           },
+          
+
           pushExcel(){
             let spreadsheet = jspreadsheet(this.$el, this.options);
             Object.assign(this, spreadsheet);  
@@ -216,22 +326,28 @@
           async fetchCases() {
             const url = "./dataex.json";
             const summary = await this.fetchData("get", url);
+            
              
             this.datas = summary;
+            this.selectIssueTypeB();
+            this.getDateDiff();
             console.log(this.datas);
 
+
             this.pushExcel();
-            this.totalIssue();
-            console.log(this.totalUrgency);
-            Object.keys(this.selectIssueTypeA).forEach(key=>{
-              console.log(key);
-              console.log(this.selectIssueTypeA[key])
-            })
+            //this.totalIssue();
+            console.log(this.selectIssueRange);
+            console.log(this.options.columns[0])
+            // Object.keys(this.selectIssueTypeA).forEach(key=>{
+            //   console.log(key);
+            //   console.log(this.selectIssueTypeA[key])
+            // })
 
           },
         },
         mounted: function () {
           this.fetchCases();
+          
 
         },
 
